@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: tdreader
+
+Globals:
+  Function:
+    Runtime: python3.8
+    Timeout: 30
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref TDQuotes
+        TD_API_KEY: FVVNHH7IYQQST48WFATYNY545TPR0HKK
+
+Resources:
+  TDReader:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: tdreader/
+      Handler: tdreader.lambda_handler
+  TDQuotes:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      GlobalSecondaryIndexes:
+        - IndexName: underlying-index
+          KeySchema:
+          - AttributeName: underlyingSymbol
+            KeyType: HASH
+          - AttributeName: quoteTimeInLong
+            KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 50
+            WriteCapacityUnits: 50
+      ProvisionedThroughput:
+        ReadCapacityUnits: 50
+        WriteCapacityUnits: 50
+      AttributeDefinitions:
+      - AttributeName: symbol
+        AttributeType: S
+      - AttributeName: quoteTimeInLong
+        AttributeType: N
+      - AttributeName: underlyingSymbol
+        AttributeType: S
+      KeySchema:
+      - AttributeName: symbol
+        KeyType: HASH
+      - AttributeName: quoteTimeInLong
+        KeyType: RANGE
+      TableName: TDQuotes
